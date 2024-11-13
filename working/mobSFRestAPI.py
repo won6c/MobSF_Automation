@@ -81,8 +81,6 @@ class Analysis:
         }
         response = requests.post(f"{self.server}/api/v1/delete_scan",data=data,headers=headers)
         return response
-    
-
 
     def get_apps(self):
         print(f"{BLUE}[*]{RESET} Connecting to Emulator")
