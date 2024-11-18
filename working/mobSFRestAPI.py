@@ -6,18 +6,19 @@ from requests_toolbelt import MultipartEncoder
 from colors import *
 
 class Analysis:
-    def __init__(self,server,file_path,file_name,api_key,device) -> None:
+    def __init__(self,server,file_path,apkPath,file_name,api_key,device) -> None:
         self.server = server
         self.path = file_path
         self.file_path = file_path+'/'+file_name
+        self.apk_path = apkPath
         self.api_key=api_key
         self.scan_hash=''
         self.device=device
 
-    def upload_apk(self):
+    def upload_apk(self,file):
         print(f'{BLUE}[*]{RESET} Uploading APK')
         multipart_data = MultipartEncoder(
-            fields = {'file':(self.file_path, open(self.file_path,'rb'),'application/octet-stream')}
+            fields = {'file':(file, open(file,'rb'),'application/octet-stream')}
         )
         headers = {
             'Content-Type':multipart_data.content_type,
@@ -231,15 +232,27 @@ class Analysis:
         response = requests.post(f"{self.server}/api/v1/frida/get_script",data=data,headers=headers)
         return response
     
+    def get_frida_code(self):
+        frida = ""
+        with open(self.path+'/frida.js','r') as f:
+            frida = f.read()
+        return frida
+    
     def Analysis(self):
-        self.upload_apk()
+        self.upload_apk(self.file_path)
         self.scan_apk()
         self.static_json()
+        self.upload_apk(self.apk_path)
         self.get_apps()
         self.start_dynamic_analysis()
+        self.frida_instrument(default_hooks=True,frida_code=self.get_frida_code())
+        self.frida_get_dependencies()
         self.dynamic_act_tester("exported")
         self.dynamic_act_tester("test")
+        self.frida_monitor()
+        self.frida_instrument(default_hooks=True,frida_code=self.get_frida_code())
         self.dynamic_tls_test()
+        self.frida_logs()
         self.stop_dynamic_analysis()
         self.dynamic_report_json()
         self.download_pdf()

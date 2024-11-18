@@ -23,7 +23,7 @@ def main():
     pack.process(path=apkPath)
     emulate = emulator(emulator_name,currnet,f'{pack.find_sdk_directory()}')
     emulate.start_emulator()
-    static = Analysis(server,currnetPath,file_name,api_key.api_key(),device)
+    static = Analysis(server,currnetPath,apkPath,file_name,api_key.api_key(),device)
     static.Analysis()
     mobsf.kill_mobsf()
     emulate.stop_emulator()
